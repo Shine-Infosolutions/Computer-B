@@ -45,106 +45,34 @@ exports.getAttributesByCategoryId = async (req, res) => {
 
     const templates = {
       "CPU": {
-        "socketType": "",
-        "ChipsetSupport": "",
-        "generation": "",
-        "coreCount": "",
-        "threadCount": "",
-        "baseClockSpeed": "",
-        "maxBoostSpeed": "",
-        "tdp": "",
-        "integratedGraphics": "",
-        "RamType": "",
-        "memorySpeed": "",
-        "memoryChannels": "",
-        "pcieVersion": "",
-        "overclockingSupport": "",
-        "coolerIncluded": "",
-        "releaseYear": "",
-       
+        "socketType": "", "ChipsetSupport": "", "generation": "", "coreCount": "", "threadCount": "",
+        "baseClockSpeed": "", "maxBoostSpeed": "", "tdp": "", "integratedGraphics": "", "RamType": "",
+        "memorySpeed": "", "memoryChannels": "", "pcieVersion": "", "overclockingSupport": "",
+        "coolerIncluded": "", "releaseYear": ""
       },
       "Motherboard": {
-        "formFactor": "",
-        "socketType": "",
-        "ChipsetSupport": "",
-        "chipset": "",
-        "RamType": "",
-        "RamMemoryCapacity": "",
-        "memorySlots": "",
-        "RamSpeed": "",
-        "pcieSlots": "",
-        "m2Slots": "",
-        "sataPorts": "",
-        "usbPorts": "",
-        "networking": "",
-        "pcieInterface": "",
-        "audioChipset": "",
-        "vrmPowerPhases": "",
-        "releaseYear": "",
-        "Storagetype": "",
-        "wattage": "",
+        "formFactor": "", "socketType": "", "ChipsetSupport": "", "chipset": "", "RamType": "",
+        "RamMemoryCapacity": "", "memorySlots": "", "RamSpeed": "", "pcieSlots": "", "m2Slots": "",
+        "sataPorts": "", "usbPorts": "", "networking": "", "pcieInterface": "", "audioChipset": "",
+        "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
       },
       "RAM": {
-        "RamType": "",
-        "RamMemoryCapacity": "",
-        "RamSpeed": "",
-        "casLatency": "",
-        "voltage": "",
-        "formFactor": "",
-        "eccSupport": "",
-        "rgbLighting": "",
-        "releaseYear": ""
-      },
-      "ROM": {
-        "driveType": "",
-        "formFactor": "",
-        "readSpeed": "",
-        "writeSpeed": "",
-        "interface": "",
-        "supportedDiscs": "",
-        "bufferMemory": "",
-        "releaseYear": ""
-      },
-      "GPU": {
-        "series": "",
-        "gpuArchitecture": "",
-        "memorySize": "",
-        "memoryType": "",
-        "memoryBusWidth": "",
-        "coreClockSpeed": "",
-        "boostClockSpeed": "",
-        "cudaShaderCores": "",
-        "rayTracingSupport": "",
-        "dlssFsrSupport": "",
-        "pcieInterface": "",
-        "powerConsumption": "",
-        "recommendedPsuWattage": "",
-        "powerConnectors": "",
-        "coolingSolution": "",
-        "outputPorts": "",
-        "releaseYear": ""
+        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "voltage": "",
+        "formFactor": "", "eccSupport": "", "rgbLighting": "", "releaseYear": ""
       },
       "Storage": {
-        "Storagetype": "",
-        "capacity": "",
-        "interface": "",
-        "formFactor": "",
-        "readSpeed": "",
-        "writeSpeed": "",
-        "cache": "",
-        "enduranceTbw": "",
-        "mtbf": "",
-        "releaseYear": ""
+        "Storagetype": "", "capacity": "", "interface": "", "formFactor": "", "readSpeed": "",
+        "writeSpeed": "", "cache": "", "enduranceTbw": "", "mtbf": "", "releaseYear": ""
+      },
+      "GPU": {
+        "series": "", "gpuArchitecture": "", "memorySize": "", "memoryType": "", "memoryBusWidth": "",
+        "coreClockSpeed": "", "boostClockSpeed": "", "cudaShaderCores": "", "rayTracingSupport": "",
+        "dlssFsrSupport": "", "pcieInterface": "", "powerConsumption": "", "recommendedPsuWattage": "",
+        "powerConnectors": "", "coolingSolution": "", "outputPorts": "", "releaseYear": ""
       },
       "PSU": {
-        "wattage": "",
-        "formFactor": "",
-        "efficiencyRating": "",
-        "modular": "",
-        "fanSize": "",
-        "connectorTypes": "",
-        "protections": "",
-        "releaseYear": ""
+        "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
+        "connectorTypes": "", "protections": "", "releaseYear": ""
       }
     };
 
@@ -158,111 +86,40 @@ exports.getAttributesByCategoryId = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 // Get attribute templates for all categories
 exports.getAttributeTemplates = async (req, res) => {
   try {
     const templates = {
-        "CPU": {
-        "socketType": "",
-        "ChipsetSupport": "",
-        "generation": "",
-        "coreCount": "",
-        "threadCount": "",
-        "baseClockSpeed": "",
-        "maxBoostSpeed": "",
-        "tdp": "",
-        "integratedGraphics": "",
-        "RamType": "",
-        "memorySpeed": "",
-        "memoryChannels": "",
-        "pcieVersion": "",
-        "overclockingSupport": "",
-        "coolerIncluded": "",
-        "releaseYear": "",
-       
+      "CPU": {
+        "socketType": "", "ChipsetSupport": "", "generation": "", "coreCount": "", "threadCount": "",
+        "baseClockSpeed": "", "maxBoostSpeed": "", "tdp": "", "integratedGraphics": "", "RamType": "",
+        "memorySpeed": "", "memoryChannels": "", "pcieVersion": "", "overclockingSupport": "",
+        "coolerIncluded": "", "releaseYear": ""
       },
       "Motherboard": {
-        "formFactor": "",
-        "socketType": "",
-        "ChipsetSupport": "",
-        "chipset": "",
-        "RamType": "",
-        "RamMemoryCapacity": "",
-        "memorySlots": "",
-        "RamSpeed": "",
-        "pcieSlots": "",
-        "m2Slots": "",
-        "sataPorts": "",
-        "usbPorts": "",
-        "networking": "",
-        "pcieInterface": "",
-        "audioChipset": "",
-        "vrmPowerPhases": "",
-        "releaseYear": "",
-        "Storagetype": "",
-        "wattage": "",
+        "formFactor": "", "socketType": "", "ChipsetSupport": "", "chipset": "", "RamType": "",
+        "RamMemoryCapacity": "", "memorySlots": "", "RamSpeed": "", "pcieSlots": "", "m2Slots": "",
+        "sataPorts": "", "usbPorts": "", "networking": "", "pcieInterface": "", "audioChipset": "",
+        "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
       },
       "RAM": {
-        "RamType": "",
-        "RamMemoryCapacity": "",
-        "RamSpeed": "",
-        "casLatency": "",
-        "voltage": "",
-        "formFactor": "",
-        "eccSupport": "",
-        "rgbLighting": "",
-        "releaseYear": ""
-      },
-      "ROM": {
-        "driveType": "",
-        "formFactor": "",
-        "readSpeed": "",
-        "writeSpeed": "",
-        "interface": "",
-        "supportedDiscs": "",
-        "bufferMemory": "",
-        "releaseYear": ""
-      },
-      "GPU": {
-        "series": "",
-        "gpuArchitecture": "",
-        "memorySize": "",
-        "memoryType": "",
-        "memoryBusWidth": "",
-        "coreClockSpeed": "",
-        "boostClockSpeed": "",
-        "cudaShaderCores": "",
-        "rayTracingSupport": "",
-        "dlssFsrSupport": "",
-        "pcieInterface": "",
-        "powerConsumption": "",
-        "recommendedPsuWattage": "",
-        "powerConnectors": "",
-        "coolingSolution": "",
-        "outputPorts": "",
-        "releaseYear": ""
+        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "voltage": "",
+        "formFactor": "", "eccSupport": "", "rgbLighting": "", "releaseYear": ""
       },
       "Storage": {
-        "Storagetype": "",
-        "capacity": "",
-        "interface": "",
-        "formFactor": "",
-        "readSpeed": "",
-        "writeSpeed": "",
-        "cache": "",
-        "enduranceTbw": "",
-        "mtbf": "",
-        "releaseYear": ""
+        "Storagetype": "", "capacity": "", "interface": "", "formFactor": "", "readSpeed": "",
+        "writeSpeed": "", "cache": "", "enduranceTbw": "", "mtbf": "", "releaseYear": ""
+      },
+      "GPU": {
+        "series": "", "gpuArchitecture": "", "memorySize": "", "memoryType": "", "memoryBusWidth": "",
+        "coreClockSpeed": "", "boostClockSpeed": "", "cudaShaderCores": "", "rayTracingSupport": "",
+        "dlssFsrSupport": "", "pcieInterface": "", "powerConsumption": "", "recommendedPsuWattage": "",
+        "powerConnectors": "", "coolingSolution": "", "outputPorts": "", "releaseYear": ""
       },
       "PSU": {
-        "wattage": "",
-        "formFactor": "",
-        "efficiencyRating": "",
-        "modular": "",
-        "fanSize": "",
-        "connectorTypes": "",
-        "protections": "",
-        "releaseYear": ""
+        "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
+        "connectorTypes": "", "protections": "", "releaseYear": ""
       }
     };
     res.json(templates);
@@ -292,6 +149,60 @@ exports.addAttributeValues = async (req, res) => {
 
     const updatedProduct = await Product.findById(productId).populate("category");
     res.json({ message: "Attributes added successfully", product: updatedProduct });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Bulk extract and populate all attributes from URL
+exports.extractAllAttributesFromUrl = async (req, res) => {
+  try {
+    const { url, categoryName } = req.body;
+    
+    if (!url || !categoryName) {
+      return res.status(400).json({ error: 'URL and category name are required' });
+    }
+
+    const templates = {
+      "Storage": {
+        "Storagetype": "", "capacity": "", "interface": "", "formFactor": "", "readSpeed": "",
+        "writeSpeed": "", "cache": "", "enduranceTbw": "", "mtbf": "", "releaseYear": ""
+      },
+      "Motherboard": {
+        "formFactor": "", "socketType": "", "ChipsetSupport": "", "chipset": "", "RamType": "",
+        "RamMemoryCapacity": "", "memorySlots": "", "RamSpeed": "", "pcieSlots": "", "m2Slots": "",
+        "sataPorts": "", "usbPorts": "", "networking": "", "pcieInterface": "", "audioChipset": "",
+        "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
+      }
+    };
+
+    const categoryTemplate = templates[categoryName];
+    if (!categoryTemplate) {
+      return res.status(400).json({ error: 'Invalid category name' });
+    }
+
+    // Simple extraction from product name in URL
+    const extractedData = { ...categoryTemplate };
+    const urlLower = url.toLowerCase();
+    
+    if (categoryName === 'Storage') {
+      if (urlLower.includes('ssd')) extractedData.Storagetype = 'SSD';
+      if (urlLower.includes('nvme')) extractedData.interface = 'NVMe';
+      if (urlLower.includes('m.2')) extractedData.formFactor = 'M.2';
+      
+      const capacityMatch = urlLower.match(/(\d+)(gb|tb)/);
+      if (capacityMatch) {
+        extractedData.capacity = capacityMatch[1] + ' ' + capacityMatch[2].toUpperCase();
+      }
+    }
+
+    res.json({
+      success: true,
+      category: categoryName,
+      attributes: extractedData,
+      message: 'All category attributes populated'
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

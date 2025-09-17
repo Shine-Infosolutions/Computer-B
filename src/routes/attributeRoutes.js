@@ -14,4 +14,7 @@ router.get("/category/:categoryId/products", attributeController.getProductsByCa
 // Add attribute values to product
 router.put("/product/:productId/attributes", attributeController.addAttributeValues);
 
+// Extract all attributes from URL
+router.post("/extract-from-url", attributeController.extractAllAttributesFromUrl);
+
 module.exports = router;

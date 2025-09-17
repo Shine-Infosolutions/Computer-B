@@ -3,6 +3,7 @@ const router = express.Router();
 const productController = require("../controllers/productController");
 
 router.post("/create", productController.createProduct);
+router.post("/scrape", productController.scrapeProductData);
 
 // Compatibility
 // router.get('/:id/compatible', productController.getCompatibleProducts);

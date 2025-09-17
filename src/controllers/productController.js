@@ -1,6 +1,8 @@
 const { Parser } = require("json2csv");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const https = require('https');
+const http = require('http');
 
 // ✅ Create Product
 exports.createProduct = async (req, res) => {
@@ -511,5 +513,134 @@ exports.exportProductsCSV = async (req, res) => {
   } catch (error) {
     console.error("Error exporting products:", error.message);
     res.status(500).json({ error: "Server error while exporting products" });
+  }
+};
+
+// ✅ Scrape Product Data from URL
+exports.scrapeProductData = async (req, res) => {
+  try {
+    const { url } = req.body;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    const urlObj = new URL(url);
+    const isHttps = urlObj.protocol === 'https:';
+    const client = isHttps ? https : http;
+
+    const options = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (isHttps ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    };
+
+    const htmlContent = await new Promise((resolve, reject) => {
+      const req = client.request(options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => resolve(data));
+      });
+      req.on('error', reject);
+      req.setTimeout(10000, () => reject(new Error('Timeout')));
+      req.end();
+    });
+
+    const productData = {};
+    const hostname = urlObj.hostname.toLowerCase();
+
+    // Extract title
+    const titleMatch = htmlContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch) {
+      let name = titleMatch[1].replace(/&[^;]+;/g, '').trim();
+      // Clean Amazon title
+      if (hostname.includes('amazon')) {
+        name = name.replace(/^Amazon\.in:\s*Buy\s*/i, '');
+        name = name.replace(/\s*Online at Low Prices.*$/i, '');
+        name = name.replace(/\s*Reviews.*$/i, '');
+      }
+      productData.name = name;
+    }
+
+    // Extract price (basic patterns)
+    const pricePatterns = [
+      /₹[\s]*([\d,]+)/g,
+      /Rs[\s.]*([\d,]+)/g,
+      /price[^>]*>.*?([\d,]+)/gi
+    ];
+    
+    for (const pattern of pricePatterns) {
+      const match = htmlContent.match(pattern);
+      if (match) {
+        const price = match[0].replace(/[^\d]/g, '');
+        if (price && price.length > 2) {
+          const numPrice = parseInt(price);
+          if (numPrice > 100) {
+            productData.sellingRate = numPrice;
+            break;
+          }
+        }
+      }
+    }
+
+    // Extract basic attributes from common patterns
+    const attributes = {};
+    const specPatterns = [
+      /<tr[^>]*>.*?<td[^>]*>([^<]+)<\/td>.*?<td[^>]*>([^<]+)<\/td>.*?<\/tr>/gi,
+      /<dt[^>]*>([^<]+)<\/dt>.*?<dd[^>]*>([^<]+)<\/dd>/gi
+    ];
+
+    specPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(htmlContent)) !== null) {
+        const key = match[1].replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '').trim();
+        const value = match[2].replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '').trim();
+        if (key && value && key.length < 30 && value.length < 50) {
+          const cleanKey = key.replace(/[^\w\s]/g, '').trim();
+          const cleanValue = value.replace(/[^\w\s.-]/g, '').trim();
+          if (cleanKey && cleanValue) {
+            attributes[cleanKey] = cleanValue;
+          }
+        }
+      }
+    });
+
+    if (Object.keys(attributes).length > 0) {
+      productData.attributes = attributes;
+    }
+
+    // Extract brand from title or content
+    const brandPatterns = ['MSI', 'ASUS', 'Gigabyte', 'ASRock', 'Intel', 'AMD', 'NVIDIA', 'Corsair', 'Samsung', 'Apple'];
+    for (const brand of brandPatterns) {
+      if (productData.name && productData.name.toLowerCase().includes(brand.toLowerCase())) {
+        productData.brand = brand;
+        break;
+      }
+    }
+    
+    // Extract model number
+    if (productData.name) {
+      const modelMatch = productData.name.match(/\b([A-Z][0-9]{3,}[A-Z]*|[A-Z]{2,}[0-9]{2,}[A-Z]*)\b/);
+      if (modelMatch) {
+        productData.modelNumber = modelMatch[1];
+      }
+    }
+
+    res.json({
+      success: true,
+      data: productData,
+      message: 'Product data extracted successfully'
+    });
+
+  } catch (error) {
+    console.error('Scraping error:', error);
+    res.status(500).json({ 
+      error: 'Failed to scrape product data',
+      message: error.message 
+    });
   }
 };
