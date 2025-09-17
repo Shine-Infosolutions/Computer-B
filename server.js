@@ -23,7 +23,6 @@ app.use(cors({
   origin: [
     "https://computer-drab.vercel.app",
     "http://localhost:5173",
-    "https://computer-shop-backend-five.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
