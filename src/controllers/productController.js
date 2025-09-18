@@ -69,16 +69,25 @@ exports.getCompatibleProducts = async (req, res) => {
 // ✅ Search Products
 exports.searchProducts = async (req, res) => {
   try {
-    const { search } = req.query;
-    let filter = {};
-
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { modelNumber: { $regex: search, $options: "i" } }
-      ];
+    const { q } = req.query;
+    
+    if (!q) {
+      const products = await Product.find().populate("category");
+      return res.json({ success: true, data: products });
     }
+
+    const categories = await Category.find({ name: { $regex: q, $options: "i" } });
+    const categoryIds = categories.map(cat => cat._id);
+    
+    const searchNum = parseFloat(q);
+    const filter = {
+      $or: [
+        { name: { $regex: q, $options: "i" } },
+        { brand: { $regex: q, $options: "i" } },
+        { category: { $in: categoryIds } },
+        ...(searchNum ? [{ sellingRate: searchNum }] : [])
+      ]
+    };
 
     const products = await Product.find(filter).populate("category");
     res.json({ success: true, data: products });
@@ -86,6 +95,8 @@ exports.searchProducts = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 // ✅ Get All Products
 exports.getAllProducts = async (req, res) => {
