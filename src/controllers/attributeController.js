@@ -183,7 +183,10 @@ exports.extractAttributesFromImage = async (req, res) => {
     // Google Vision API OCR
     const client = new vision.ImageAnnotatorClient({
       projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      credentials: {
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_CLIENT_EMAIL
+      }
     });
     const [result] = await client.textDetection(uploadedFile.path);
     const detections = result.textAnnotations;
