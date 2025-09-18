@@ -104,7 +104,7 @@ exports.getAttributeTemplates = async (req, res) => {
         "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
       },
       "RAM": {
-        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "voltage": "",
+        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "Voltage": "",
         "formFactor": "", "eccSupport": "", "rgbLighting": "", "releaseYear": ""
       },
       "Storage": {
@@ -156,6 +156,8 @@ exports.addAttributeValues = async (req, res) => {
 
 // Extract attributes from uploaded image using OCR
 exports.extractAttributesFromImage = async (req, res) => {
+  const fs = require('fs');
+  
   try {
     const { imageUrl, categoryName } = req.body;
     const uploadedFile = req.file;
@@ -288,6 +290,11 @@ exports.extractAttributesFromImage = async (req, res) => {
       if (ghzMatch) extractedData.baseClockSpeed = ghzMatch[1] + ' GHz';
     }
 
+    // Delete uploaded file after processing
+    if (uploadedFile && fs.existsSync(uploadedFile.path)) {
+      fs.unlinkSync(uploadedFile.path);
+    }
+
     res.json({
       success: true,
       category: categoryName,
@@ -297,6 +304,10 @@ exports.extractAttributesFromImage = async (req, res) => {
     });
 
   } catch (error) {
+    // Clean up file if error occurs
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ error: error.message });
   }
 };

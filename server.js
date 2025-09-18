@@ -10,6 +10,7 @@ const customerRoutes = require("./src/routes/customerRoutes");
 const quotationRoutes = require("./src/routes/quotationRoutes");
 const attributeRoutes = require("./src/routes/attributeRoutes");
 const productScraperRoutes = require("./src/routes/productScraperRoutes");
+const imageRoutes = require("./src/routes/imageRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +43,7 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/quotations", quotationRoutes);
 app.use("/api/attributes", attributeRoutes);
 app.use("/api/scraper", productScraperRoutes);
+app.use("/api/images", imageRoutes);
 
 
 // Default route
