@@ -1,6 +1,13 @@
 const { Parser } = require("json2csv");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const { 
+  isValidObjectId, 
+  getPaginationMeta, 
+  buildSearchFilter, 
+  sendError, 
+  sendSuccess 
+} = require('../utils/helpers');
 
 // Generate sequential order ID starting from O-001
 const generateOrderId = async () => {
@@ -26,131 +33,120 @@ const generateQuoteId = async () => {
   return `Q-${String(lastNumber + 1).padStart(3, "0")}`;
 };
 
-// Create Order/Quotation
 exports.createOrder = async (req, res) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ error: "Request body is required" });
-    }
+    const { customerName, address, items, type = "Order" } = req.body;
     
-    const { customerName, customerEmail, customerPhone, address, items, type } = req.body;
-    
-    if (!customerName || !address || !items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: "customerName, address, and items are required" });
+    if (!customerName?.trim() || !address?.trim() || !Array.isArray(items) || !items.length) {
+      return sendError(res, 400, "Customer name, address, and items are required");
     }
 
-    // Generate orderId or quoteId based on type
-    let generatedId;
-    if (type === "Quotation") {
-      const quoteCount = await Order.countDocuments({ type: "Quotation" });
-      generatedId = `Q-${String(quoteCount + 1).padStart(3, '0')}`;
-    } else {
-      const orderCount = await Order.countDocuments({ type: { $ne: "Quotation" } });
-      generatedId = `O-${String(orderCount + 1).padStart(3, '0')}`;
+    // Validate all product IDs first
+    const productIds = items.map(i => i.product);
+    if (!productIds.every(isValidObjectId)) {
+      return sendError(res, 400, "Invalid product ID(s)");
     }
+
+    // Generate ID
+    const [quoteCount, orderCount] = await Promise.all([
+      Order.countDocuments({ type: "Quotation" }),
+      Order.countDocuments({ type: { $ne: "Quotation" } })
+    ]);
+    
+    const generatedId = type === "Quotation" 
+      ? `Q-${String(quoteCount + 1).padStart(3, '0')}`
+      : `O-${String(orderCount + 1).padStart(3, '0')}`;
+
+    // Get all products at once
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
 
     let totalAmount = 0;
     const populatedItems = [];
+    const stockUpdates = [];
 
-    for (let i of items) {
-      const product = await Product.findById(i.product);
+    for (const item of items) {
+      const product = productMap.get(item.product.toString());
       if (!product) {
-        return res.status(404).json({ error: "Product not found" });
+        return sendError(res, 404, "Product not found");
       }
 
-      if (type === "Order" && product.quantity < i.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+      if (type === "Order" && product.quantity < item.quantity) {
+        return sendError(res, 400, `Insufficient stock for ${product.name}`);
       }
 
-      const price = i.price || product.sellingRate;
-      const subtotal = price * i.quantity;
-      totalAmount += subtotal;
+      const price = item.price || product.sellingRate;
+      totalAmount += price * item.quantity;
 
       populatedItems.push({
         product: product._id,
-        quantity: i.quantity,
-        price,
+        quantity: item.quantity,
+        price
       });
 
       if (type === "Order") {
-        product.quantity -= i.quantity;
-        await product.save();
+        stockUpdates.push({
+          updateOne: {
+            filter: { _id: product._id },
+            update: { $inc: { quantity: -item.quantity } }
+          }
+        });
       }
     }
 
-    // Create order with generated ID
-    const orderData = {
-      customerName,
-      customerEmail,
-      customerPhone,
-      address,
-      items: populatedItems,
-      totalAmount,
-      type: type || "Order"
-    };
-
-    // Add the appropriate ID field
-    if (type === "Quotation") {
-      orderData.quoteId = generatedId;
-    } else {
-      orderData.orderId = generatedId;
+    // Update stock in bulk if needed
+    if (stockUpdates.length) {
+      await Product.bulkWrite(stockUpdates);
     }
 
-    const order = new Order(orderData);
-    await order.save();
+    const orderData = {
+      ...req.body,
+      items: populatedItems,
+      totalAmount,
+      type,
+      [type === "Quotation" ? "quoteId" : "orderId"]: generatedId
+    };
 
-    res.status(201).json({ message: "Order created successfully", order });
+    const order = await Order.create(orderData);
+    sendSuccess(res, order, `${type} created successfully`);
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ error: error.message });
+    sendError(res, 500, "Failed to create order", error);
   }
 };
 
-// Get all orders/quotations (with pagination + filter by type and status)
 exports.getOrders = async (req, res) => {
   try {
     const { type, status, page = 1, limit = 15, search } = req.query;
     let filter = { isDeleted: false };
 
-    if (type) {
-      filter.type = type;
-    }
+    if (type) filter.type = type;
+    if (status) filter.status = status;
 
-    if (status) {
-      filter.status = status;
-    }
-
-    // Search by orderId, quoteId, or customer name
-    if (search && search.trim()) {
+    if (search?.trim()) {
+      const searchFilter = buildSearchFilter(search, ['customerName']);
       const q = search.trim();
       filter.$or = [
-        { orderId: { $regex: q, $options: "i" } },
-        { quoteId: { $regex: q, $options: "i" } },
-        { customerName: { $regex: q, $options: "i" } }
+        ...searchFilter.$or || [],
+        { orderId: { $regex: q, $options: 'i' } },
+        { quoteId: { $regex: q, $options: 'i' } }
       ];
     }
 
-    // Pagination
     const skip = (page - 1) * limit;
+    const [orders, total] = await Promise.all([
+      Order.find(filter)
+        .populate('items.product', 'name sellingRate')
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 })
+        .lean(),
+      Order.countDocuments(filter)
+    ]);
 
-    const orders = await Order.find(filter)
-      .populate("items.product")
-      .skip(Number(skip))
-      .limit(Number(limit))
-      .sort({ createdAt: -1 }); // latest first
-
-    const total = await Order.countDocuments(filter);
-
-    res.status(200).json({
-      success: true,
-      count: orders.length,
-      total,
-      currentPage: Number(page),
-      totalPages: Math.ceil(total / limit),
-      data: orders
-    });
+    const meta = getPaginationMeta(page, limit, total);
+    sendSuccess(res, orders, null, { ...meta, count: orders.length });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, 'Failed to fetch orders', error);
   }
 };
 

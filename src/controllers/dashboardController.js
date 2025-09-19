@@ -1,62 +1,69 @@
 const Category = require("../models/Category");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const { sendError, sendSuccess } = require('../utils/helpers');
 
-// Get total categories count
 const getTotalCategories = async (req, res) => {
   try {
     const count = await Category.countDocuments();
-    res.json({ totalCategories: count });
+    sendSuccess(res, { totalCategories: count });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, 500, 'Failed to get categories count', error);
   }
 };
 
-// Get yearly orders chart data
 const getYearlyOrders = async (req, res) => {
   try {
     const yearlyData = await Order.aggregate([
+      { $match: { isDeleted: false } },
       {
         $group: {
           _id: { $year: "$createdAt" },
           totalOrders: { $sum: 1 }
         }
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          year: "$_id",
+          orders: "$totalOrders",
+          _id: 0
+        }
+      }
     ]);
     
-    res.json(yearlyData.map(item => ({
-      year: item._id,
-      orders: item.totalOrders
-    })));
+    sendSuccess(res, yearlyData);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, 500, 'Failed to get yearly orders', error);
   }
 };
 
-// Get yearly sales chart data
 const getYearlySales = async (req, res) => {
   try {
     const yearlyData = await Order.aggregate([
+      { $match: { isDeleted: false, type: "Order" } },
       {
         $group: {
           _id: { $year: "$createdAt" },
           totalSales: { $sum: "$totalAmount" }
         }
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          year: "$_id",
+          sales: "$totalSales",
+          _id: 0
+        }
+      }
     ]);
     
-    res.json(yearlyData.map(item => ({
-      year: item._id,
-      sales: item.totalSales
-    })));
+    sendSuccess(res, yearlyData);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, 500, 'Failed to get yearly sales', error);
   }
 };
 
-// Get category wise product count
 const getCategoryWiseProducts = async (req, res) => {
   try {
     const categoryData = await Product.aggregate([
@@ -75,15 +82,19 @@ const getCategoryWiseProducts = async (req, res) => {
           productCount: { $sum: 1 }
         }
       },
-      { $sort: { productCount: -1 } }
+      { $sort: { productCount: -1 } },
+      {
+        $project: {
+          category: "$_id",
+          count: "$productCount",
+          _id: 0
+        }
+      }
     ]);
     
-    res.json(categoryData.map(item => ({
-      category: item._id,
-      count: item.productCount
-    })));
+    sendSuccess(res, categoryData);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, 500, 'Failed to get category-wise products', error);
   }
 };
 

@@ -1,56 +1,43 @@
 const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema({
-  orderId: { type: String, unique: true, sparse: true },
-  quoteId: { type: String, unique: true, sparse: true },
-  customerName: { type: String, required: true },
-  customerEmail: { type: String },
-  customerPhone: { type: String },
-  address: { type: String, required: true },
+  orderId: { type: String, unique: true, sparse: true, index: true },
+  quoteId: { type: String, unique: true, sparse: true, index: true },
+  customerName: { type: String, required: true, trim: true, index: true },
+  customerEmail: { type: String, trim: true, lowercase: true },
+  customerPhone: { type: String, trim: true },
+  address: { type: String, required: true, trim: true },
   type: {
     type: String,
     enum: ["Order", "Quotation"],
-    default: "Order"
+    default: "Order",
+    index: true
   },
-
-  items: [
-    {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        required: true
-      },
-      quantity: { type: Number, required: true, min: 1 },
-      price: { type: Number, required: true } // price at order time
-    }
-  ],
-
-  totalAmount: { type: Number, required: true },
+  items: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true
+    },
+    quantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true, min: 0 }
+  }],
+  totalAmount: { type: Number, required: true, min: 0 },
   status: {
     type: String,
     enum: ["Pending", "Confirmed", "Cancelled"],
-    default: "Pending"
+    default: "Pending",
+    index: true
   },
-
-  isDeleted: { type: Boolean, default: false },
-  deletedAt: { type: Date, default: null },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  isDeleted: { type: Boolean, default: false, index: true },
+  deletedAt: { type: Date, default: null }
+}, {
+  timestamps: true
 });
 
-// Index for soft delete queries
-OrderSchema.index({ isDeleted: 1 });
-
-// // Generate orderId and quoteId before saving
-// OrderSchema.pre("save", async function (next) {
-//   if (!this.orderId) {
-//     this.orderId = await generateOrderId();
-//   }
-//   if (this.type === "Quotation" && !this.quoteId) {
-//     this.quoteId = await generateQuoteId();
-//   }
-//   this.updatedAt = Date.now();
-//   next();
-// });
+// Compound indexes for better query performance
+OrderSchema.index({ type: 1, isDeleted: 1, status: 1 });
+OrderSchema.index({ customerName: 'text' });
+OrderSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Order", OrderSchema);
