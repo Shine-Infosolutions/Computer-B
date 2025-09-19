@@ -1,161 +1,210 @@
 const { Parser } = require("json2csv");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const { 
+  isValidObjectId, 
+  getPaginationMeta, 
+  buildSearchFilter, 
+  getAttributeValue, 
+  formatAttributes, 
+  sendError, 
+  sendSuccess 
+} = require('../utils/helpers');
 const https = require('https');
 const http = require('http');
 
-// ✅ Create Product
 exports.createProduct = async (req, res) => {
   try {
-    const { name, category, brand, modelNumber, quantity, sellingRate, costRate, status, warranty, attributes } = req.body;
+    const { name, category, sellingRate, attributes } = req.body;
 
-    if (!name || !category || !sellingRate) {
-      return res.status(400).json({ error: "Name, Category, and Selling Rate are required." });
+    if (!name?.trim() || !category || !sellingRate) {
+      return sendError(res, 400, "Name, Category, and Selling Rate are required");
     }
 
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) return res.status(400).json({ error: "Invalid category ID." });
-
-    const formattedAttributes = new Map();
-    if (attributes && typeof attributes === "object") {
-      for (let key in attributes) formattedAttributes.set(key, attributes[key]);
+    if (!isValidObjectId(category)) {
+      return sendError(res, 400, "Invalid category ID");
     }
 
-    const product = new Product({ name, category, brand, modelNumber, quantity, sellingRate, costRate, status, warranty, attributes: formattedAttributes });
-    await product.save();
+    const categoryExists = await Category.findById(category).lean();
+    if (!categoryExists) return sendError(res, 400, "Category not found");
 
-    res.status(201).json({ message: "Product added successfully", product });
-  } catch (error) {
-    console.error("Error creating product:", error);
-    res.status(500).json({ error: "Server error while creating product" });
-  }
-};
-
-// ✅ Get compatible products
-exports.getCompatibleProducts = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id).populate("category");
-    if (!product) return res.status(404).json({ message: "Product not found" });
-    if (!product.attributes || product.attributes.size === 0) {
-      return res.json({ product, compatibleProducts: [], message: "No attributes to match" });
-    }
-
-    const allProducts = await Product.find({ _id: { $ne: product._id } }).populate("category");
-    
-    const compatibleProducts = allProducts.filter(p => {
-      if (!p.attributes || p.attributes.size === 0) return false;
-      
-      // Check if any attribute matches
-      for (const [key, value] of product.attributes) {
-        if (p.attributes.has(key) && p.attributes.get(key)?.toString().toLowerCase() === value?.toString().toLowerCase()) {
-          return true;
-        }
-      }
-      return false;
-    }).map(p => ({
-      ...p.toObject(),
-      matchingAttributes: Array.from(product.attributes.entries()).filter(([key, value]) => 
-        p.attributes.has(key) && p.attributes.get(key)?.toString().toLowerCase() === value?.toString().toLowerCase()
-      ).map(([key, value]) => ({ [key]: value }))
-    }));
-
-    res.json({ product, compatibleProducts });
-  } catch (err) {
-    console.error('Compatibility check error:', err);
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// ✅ Search Products
-exports.searchProducts = async (req, res) => {
-  try {
-    const { q } = req.query;
-    
-    if (!q) {
-      const products = await Product.find().populate("category");
-      return res.json({ success: true, data: products });
-    }
-
-    const categories = await Category.find({ name: { $regex: q, $options: "i" } });
-    const categoryIds = categories.map(cat => cat._id);
-    
-    const searchNum = parseFloat(q);
-    const filter = {
-      $or: [
-        { name: { $regex: q, $options: "i" } },
-        { brand: { $regex: q, $options: "i" } },
-        { category: { $in: categoryIds } },
-        ...(searchNum ? [{ sellingRate: searchNum }] : [])
-      ]
+    const productData = {
+      ...req.body,
+      attributes: formatAttributes(attributes)
     };
 
-    const products = await Product.find(filter).populate("category");
-    res.json({ success: true, data: products });
+    const product = await Product.create(productData);
+    sendSuccess(res, product, "Product created successfully");
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, "Failed to create product", error);
   }
 };
 
-
-
-// ✅ Get All Products
-exports.getAllProducts = async (req, res) => {
+exports.getCompatibleProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate("category");
-    res.json(products);
-  } catch (error) {
-    console.error("Error fetching products:", error.message);
-    res.status(500).json({ error: "Server error while fetching products" });
-  }
-};
-
-// ✅ Get Product by ID
-exports.getProductById = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id).populate("category");
-    if (!product) return res.status(404).json({ error: "Product not found" });
-    res.json(product);
-  } catch (error) {
-    console.error("Error fetching product:", error.message);
-    res.status(500).json({ error: "Server error while fetching product" });
-  }
-};
-
-// ✅ Update Product
-exports.updateProduct = async (req, res) => {
-  try {
-    const { attributes, ...rest } = req.body;
-
-    let formattedAttributes = undefined;
-    if (attributes && typeof attributes === "object") {
-      formattedAttributes = new Map();
-      for (let key in attributes) formattedAttributes.set(key, attributes[key]);
+    if (!isValidObjectId(req.params.id)) {
+      return sendError(res, 400, 'Invalid product ID');
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { ...rest, ...(formattedAttributes ? { attributes: formattedAttributes } : {}) },
-      { new: true }
-    );
+    const product = await Product.findById(req.params.id)
+      .populate('category', 'name')
+      .lean();
+      
+    if (!product) return sendError(res, 404, 'Product not found');
+    
+    if (!product.attributes || product.attributes.size === 0) {
+      return sendSuccess(res, { product, compatibleProducts: [] }, 'No attributes to match');
+    }
 
-    if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
+    const allProducts = await Product.find({ _id: { $ne: product._id } })
+      .populate('category', 'name')
+      .lean();
+    
+    const compatibleProducts = allProducts
+      .filter(p => {
+        if (!p.attributes || p.attributes.size === 0) return false;
+        
+        for (const [key, value] of Object.entries(product.attributes)) {
+          if (p.attributes[key] && 
+              p.attributes[key].toString().toLowerCase() === value?.toString().toLowerCase()) {
+            return true;
+          }
+        }
+        return false;
+      })
+      .map(p => ({
+        ...p,
+        matchingAttributes: Object.entries(product.attributes)
+          .filter(([key, value]) => 
+            p.attributes[key] && 
+            p.attributes[key].toString().toLowerCase() === value?.toString().toLowerCase()
+          )
+          .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+      }));
 
-    res.json({ message: "Product updated successfully", updatedProduct });
-  } catch (error) {
-    console.error("Error updating product:", error.message);
-    res.status(500).json({ error: "Server error while updating product" });
+    sendSuccess(res, { product, compatibleProducts });
+  } catch (err) {
+    sendError(res, 500, 'Failed to find compatible products', err);
   }
 };
 
-// ✅ Delete Product
+exports.searchProducts = async (req, res) => {
+  try {
+    const { q, page = 1, limit = 20 } = req.query;
+    
+    let filter = {};
+    if (q?.trim()) {
+      const searchNum = parseFloat(q);
+      const textFilter = buildSearchFilter(q, ['name', 'brand']);
+      
+      const categories = await Category.find(
+        { name: { $regex: q.trim(), $options: 'i' } },
+        '_id'
+      ).lean();
+      
+      filter = {
+        $or: [
+          ...textFilter.$or || [],
+          { category: { $in: categories.map(c => c._id) } },
+          ...(searchNum ? [{ sellingRate: searchNum }] : [])
+        ]
+      };
+    }
+
+    const skip = (page - 1) * limit;
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .populate('category', 'name')
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      Product.countDocuments(filter)
+    ]);
+
+    const meta = getPaginationMeta(page, limit, total);
+    sendSuccess(res, products, null, meta);
+  } catch (error) {
+    sendError(res, 500, 'Failed to search products', error);
+  }
+};
+
+exports.getAllProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const [products, total] = await Promise.all([
+      Product.find()
+        .populate('category', 'name')
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      Product.countDocuments()
+    ]);
+
+    const meta = getPaginationMeta(page, limit, total);
+    sendSuccess(res, products, null, meta);
+  } catch (error) {
+    sendError(res, 500, 'Failed to fetch products', error);
+  }
+};
+
+exports.getProductById = async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return sendError(res, 400, 'Invalid product ID');
+    }
+    
+    const product = await Product.findById(req.params.id)
+      .populate('category', 'name')
+      .lean();
+      
+    if (!product) return sendError(res, 404, 'Product not found');
+    
+    sendSuccess(res, product);
+  } catch (error) {
+    sendError(res, 500, 'Failed to fetch product', error);
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return sendError(res, 400, 'Invalid product ID');
+    }
+
+    const { attributes, ...rest } = req.body;
+    const updateData = {
+      ...rest,
+      ...(attributes && { attributes: formatAttributes(attributes) })
+    };
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('category', 'name').lean();
+
+    if (!product) return sendError(res, 404, 'Product not found');
+
+    sendSuccess(res, product, 'Product updated successfully');
+  } catch (error) {
+    sendError(res, 500, 'Failed to update product', error);
+  }
+};
+
 exports.deleteProduct = async (req, res) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-    if (!deletedProduct) return res.status(404).json({ error: "Product not found" });
-    res.json({ message: "Product deleted successfully" });
+    if (!isValidObjectId(req.params.id)) {
+      return sendError(res, 400, 'Invalid product ID');
+    }
+
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return sendError(res, 404, 'Product not found');
+    
+    sendSuccess(res, null, 'Product deleted successfully');
   } catch (error) {
-    console.error("Error deleting product:", error.message);
-    res.status(500).json({ error: "Server error while deleting product" });
+    sendError(res, 500, 'Failed to delete product', error);
   }
 };
 

@@ -2,14 +2,6 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const categoryRoutes = require("./src/routes/categoryRoutes");
-const productRoutes = require("./src/routes/productRoutes");
-const orderRoutes = require("./src/routes/orderRoutes");
-const dashboardRoutes = require("./src/routes/dashboardRoutes");
-const customerRoutes = require("./src/routes/customerRoutes");
-const quotationRoutes = require("./src/routes/quotationRoutes");
-const attributeRoutes = require("./src/routes/attributeRoutes");
-const productScraperRoutes = require("./src/routes/productScraperRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +11,7 @@ connectDB();
 
 const app = express();
 
-// ✅ CORS Middleware (allow specific frontend domain)
+// Security middleware
 app.use(cors({
   origin: [
     "https://computer-drab.vercel.app",
@@ -30,27 +22,53 @@ app.use(cors({
   credentials: true
 }));
 
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use(express.json());
+// API Routes
+const routes = [
+  ['/api/categories', require('./src/routes/categoryRoutes')],
+  ['/api/products', require('./src/routes/productRoutes')],
+  ['/api/orders', require('./src/routes/orderRoutes')],
+  ['/api/dashboard', require('./src/routes/dashboardRoutes')],
+  ['/api/customers', require('./src/routes/customerRoutes')],
+  ['/api/quotations', require('./src/routes/quotationRoutes')],
+  ['/api/attributes', require('./src/routes/attributeRoutes')],
+  ['/api/scraper', require('./src/routes/productScraperRoutes')]
+];
 
-// Routes
-app.use("/api/categories", categoryRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/customers", customerRoutes);
-app.use("/api/quotations", quotationRoutes);
-app.use("/api/attributes", attributeRoutes);
-app.use("/api/scraper", productScraperRoutes);
+routes.forEach(([path, router]) => app.use(path, router));
 
-
-// Default route
-app.get("/", (req, res) => {
-  res.send("API is running...");
+// Health check
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Computer Shop API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Server listen
-const PORT = process.env.PORT || 5000;
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    error: 'Route not found' 
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message
+  });
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

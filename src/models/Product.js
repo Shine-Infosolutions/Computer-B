@@ -1,46 +1,36 @@
 const mongoose = require("mongoose");
 
 const ProductSchema = new mongoose.Schema({
-  // 🔹 Basic Info
-  name: { type: String, required: true },
+  name: { type: String, required: true, trim: true, index: true },
   category: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "Category", 
-    required: true 
+    required: true,
+    index: true
   },
-  brand: { type: String },
-  modelNumber: { type: String },
-
-  // 🔹 Pricing & Stock
-  quantity: { type: Number, default: 0 },
-  sellingRate: { type: Number, required: true },
-  costRate: { type: Number },
-
-  // 🔹 Status
+  brand: { type: String, trim: true, index: true },
+  modelNumber: { type: String, trim: true },
+  quantity: { type: Number, default: 0, min: 0 },
+  sellingRate: { type: Number, required: true, min: 0 },
+  costRate: { type: Number, min: 0 },
   status: { 
     type: String, 
     enum: ["Active", "Inactive", "Out of Stock"], 
-    default: "Active" 
+    default: "Active",
+    index: true
   },
-
-  warranty: { type: String },
-
-  // 🔹 Dynamic attributes (specifications)
+  warranty: { type: String, trim: true },
   attributes: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
-    // Example: { "Socket": "AM4", "RAM Type": "DDR4", "PCIe Version": "4.0" }
-  },
-
-  // 🔹 Tracking
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  }
+}, {
+  timestamps: true
 });
 
-// Auto update `updatedAt` on save
-ProductSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Compound indexes for better query performance
+ProductSchema.index({ name: 'text', brand: 'text' });
+ProductSchema.index({ category: 1, status: 1 });
+ProductSchema.index({ sellingRate: 1 });
 
 module.exports = mongoose.model("Product", ProductSchema);

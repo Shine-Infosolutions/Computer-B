@@ -39,7 +39,7 @@ router.get("/quotations/export/csv", orderController.exportQuotationsCSV);
 router.put("/update/:id", orderController.updateOrder);
 
 // Delete order
-router.delete("/:id", orderController.deleteOrder);
+router.delete("/delete/:id", orderController.deleteOrder);
 
 // Get deleted quotations
 router.get("/quotations/deleted", orderController.getDeletedQuotations);
