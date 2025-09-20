@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const CartSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true, index: true },
+  cartId: { type: String, default: 'global', index: true },
   items: [{
     product: {
       type: mongoose.Schema.Types.ObjectId,
@@ -11,16 +11,11 @@ const CartSchema = new mongoose.Schema({
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 }
   }],
-  totalAmount: { type: Number, default: 0, min: 0 },
-  expiresAt: { 
-    type: Date, 
-    default: Date.now, 
-    expires: 604800 // 7 days in seconds
-  }
+  totalAmount: { type: Number, default: 0, min: 0 }
 }, {
   timestamps: true
 });
 
-CartSchema.index({ sessionId: 1 });
+CartSchema.index({ cartId: 1 });
 
 module.exports = mongoose.model("Cart", CartSchema);
