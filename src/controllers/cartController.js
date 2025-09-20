@@ -71,7 +71,7 @@ const addToCart = async (req, res) => {
       cart.items.push({
         product: productId,
         quantity: Number(quantity),
-        price: Number(product.price)
+        price: Number(product.sellingRate)
       });
     }
     
