@@ -105,7 +105,7 @@ exports.searchProducts = async (req, res) => {
       filter = {
         $or: [
           ...textFilter.$or || [],
-          { category: { $in: categories.map(c => c._id) } },
+          ...(categories?.length ? [{ category: { $in: categories.map(c => c._id) } }] : []),
           ...(searchNum ? [{ sellingRate: searchNum }] : [])
         ]
       };
