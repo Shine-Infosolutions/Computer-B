@@ -39,6 +39,10 @@ const addToCart = async (req, res) => {
     const { sessionId } = req.params;
     const { productId, quantity = 1 } = req.body;
     
+    if (!productId) {
+      return sendError(res, 400, "Product ID is required");
+    }
+    
     if (!isValidObjectId(productId)) {
       return sendError(res, 400, "Invalid product ID");
     }
@@ -51,29 +55,35 @@ const addToCart = async (req, res) => {
     let cart = await Cart.findOne({ sessionId });
     
     if (!cart) {
-      cart = new Cart({ sessionId, items: [] });
+      cart = new Cart({ 
+        sessionId, 
+        items: [],
+        totalAmount: 0,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      });
     }
     
     const existingItem = cart.items.find(item => item.product.toString() === productId);
     
     if (existingItem) {
-      existingItem.quantity += quantity;
+      existingItem.quantity += Number(quantity);
     } else {
       cart.items.push({
         product: productId,
-        quantity,
-        price: product.price
+        quantity: Number(quantity),
+        price: Number(product.price)
       });
     }
     
-    cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    cart.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Reset expiry
+    cart.totalAmount = cart.items.reduce((total, item) => total + (Number(item.price) * Number(item.quantity)), 0);
+    cart.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
     await cart.save();
     await cart.populate('items.product');
     
     sendSuccess(res, cart, "Item added to cart");
   } catch (error) {
+    console.error('Add to cart error:', error);
     sendError(res, 500, "Failed to add item to cart", error);
   }
 };
