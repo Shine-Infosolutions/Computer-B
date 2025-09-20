@@ -1,6 +1,7 @@
 const { Parser } = require("json2csv");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const Cart = require("../models/Cart");
 const { 
   isValidObjectId, 
   getPaginationMeta, 
@@ -108,6 +109,13 @@ exports.createOrder = async (req, res) => {
     };
 
     const order = await Order.create(orderData);
+    
+    // Clear cart after successful order/quote creation
+    await Cart.findOneAndUpdate(
+      { cartId: 'global' },
+      { items: [], totalAmount: 0 }
+    );
+    
     sendSuccess(res, order, `${type} created successfully`);
   } catch (error) {
     sendError(res, 500, "Failed to create order", error);

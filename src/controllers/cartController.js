@@ -1,42 +1,26 @@
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const { sendError, sendSuccess, isValidObjectId } = require("../utils/helpers");
-const crypto = require("crypto");
 
-// Create new cart session
-const createCart = async (req, res) => {
+// Get or create global cart
+const getOrCreateCart = async (req, res) => {
   try {
-    const sessionId = crypto.randomUUID();
-    const cart = new Cart({ sessionId, items: [] });
-    await cart.save();
-    
-    sendSuccess(res, { sessionId, items: [], totalAmount: 0 }, "Cart session created");
-  } catch (error) {
-    sendError(res, 500, "Failed to create cart", error);
-  }
-};
-
-// Get cart by session ID
-const getCart = async (req, res) => {
-  try {
-    const { sessionId } = req.params;
-    
-    const cart = await Cart.findOne({ sessionId }).populate('items.product');
+    let cart = await Cart.findOne({ cartId: 'global' }).populate('items.product');
     
     if (!cart) {
-      return sendError(res, 404, "Cart not found");
+      cart = new Cart({ cartId: 'global', items: [], totalAmount: 0 });
+      await cart.save();
     }
     
     sendSuccess(res, cart);
   } catch (error) {
-    sendError(res, 500, "Failed to fetch cart", error);
+    sendError(res, 500, "Failed to get cart", error);
   }
 };
 
 // Add item to cart
 const addToCart = async (req, res) => {
   try {
-    const { sessionId } = req.params;
     const { productId, quantity = 1 } = req.body;
     
     if (!productId) {
@@ -52,15 +36,10 @@ const addToCart = async (req, res) => {
       return sendError(res, 404, "Product not found");
     }
     
-    let cart = await Cart.findOne({ sessionId });
+    let cart = await Cart.findOne({ cartId: 'global' });
     
     if (!cart) {
-      cart = new Cart({ 
-        sessionId, 
-        items: [],
-        totalAmount: 0,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      });
+      cart = new Cart({ cartId: 'global', items: [], totalAmount: 0 });
     }
     
     const existingItem = cart.items.find(item => item.product.toString() === productId);
@@ -76,14 +55,12 @@ const addToCart = async (req, res) => {
     }
     
     cart.totalAmount = cart.items.reduce((total, item) => total + (Number(item.price) * Number(item.quantity)), 0);
-    cart.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
     await cart.save();
     await cart.populate('items.product');
     
     sendSuccess(res, cart, "Item added to cart");
   } catch (error) {
-    console.error('Add to cart error:', error);
     sendError(res, 500, "Failed to add item to cart", error);
   }
 };
@@ -91,18 +68,14 @@ const addToCart = async (req, res) => {
 // Update cart item quantity
 const updateCartItem = async (req, res) => {
   try {
-    const { sessionId, productId } = req.params;
+    const { productId } = req.params;
     const { quantity } = req.body;
     
     if (!isValidObjectId(productId)) {
       return sendError(res, 400, "Invalid product ID");
     }
     
-    if (quantity < 1) {
-      return sendError(res, 400, "Quantity must be at least 1");
-    }
-    
-    const cart = await Cart.findOne({ sessionId });
+    const cart = await Cart.findOne({ cartId: 'global' });
     if (!cart) {
       return sendError(res, 404, "Cart not found");
     }
@@ -127,13 +100,13 @@ const updateCartItem = async (req, res) => {
 // Remove item from cart
 const removeFromCart = async (req, res) => {
   try {
-    const { sessionId, productId } = req.params;
+    const { productId } = req.params;
     
     if (!isValidObjectId(productId)) {
       return sendError(res, 400, "Invalid product ID");
     }
     
-    const cart = await Cart.findOne({ sessionId });
+    const cart = await Cart.findOne({ cartId: 'global' });
     if (!cart) {
       return sendError(res, 404, "Cart not found");
     }
@@ -153,9 +126,12 @@ const removeFromCart = async (req, res) => {
 // Clear cart
 const clearCart = async (req, res) => {
   try {
-    const { sessionId } = req.params;
-    
-    await Cart.findOneAndDelete({ sessionId });
+    const cart = await Cart.findOne({ cartId: 'global' });
+    if (cart) {
+      cart.items = [];
+      cart.totalAmount = 0;
+      await cart.save();
+    }
     
     sendSuccess(res, { items: [], totalAmount: 0 }, "Cart cleared");
   } catch (error) {
@@ -164,8 +140,7 @@ const clearCart = async (req, res) => {
 };
 
 module.exports = {
-  createCart,
-  getCart,
+  getOrCreateCart,
   addToCart,
   updateCartItem,
   removeFromCart,

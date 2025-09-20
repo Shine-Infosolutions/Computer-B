@@ -1,4 +1,5 @@
 const Quotation = require("../models/Quotation");
+const Cart = require("../models/Cart");
 
 // Get all quotations (excluding soft deleted)
 const getQuotations = async (req, res) => {
@@ -34,6 +35,13 @@ const createQuotation = async (req, res) => {
   try {
     const quotation = new Quotation(req.body);
     await quotation.save();
+    
+    // Clear cart after successful quotation creation
+    await Cart.findOneAndUpdate(
+      { cartId: 'global' },
+      { items: [], totalAmount: 0 }
+    );
+    
     res.status(201).json(quotation);
   } catch (error) {
     res.status(400).json({ message: error.message });
