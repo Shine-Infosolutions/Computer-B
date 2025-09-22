@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const dashboardController = require("../controllers/dashboardController");
 
+router.get("/", dashboardController.getDashboardData);
 router.get("/categories/count", dashboardController.getTotalCategories);
 router.get("/orders/yearly", dashboardController.getYearlyOrders);
 router.get("/sales/yearly", dashboardController.getYearlySales);

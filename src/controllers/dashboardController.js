@@ -98,9 +98,46 @@ const getCategoryWiseProducts = async (req, res) => {
   }
 };
 
+const getDashboardData = async (req, res) => {
+  try {
+    const [categoriesCount, yearlyOrders, yearlySales, categoryProducts] = await Promise.all([
+      Category.countDocuments(),
+      Order.aggregate([
+        { $match: { isDeleted: false } },
+        { $group: { _id: { $year: "$createdAt" }, totalOrders: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+        { $project: { year: "$_id", orders: "$totalOrders", _id: 0 } }
+      ]),
+      Order.aggregate([
+        { $match: { isDeleted: false, type: "Order" } },
+        { $group: { _id: { $year: "$createdAt" }, totalSales: { $sum: "$totalAmount" } } },
+        { $sort: { _id: 1 } },
+        { $project: { year: "$_id", sales: "$totalSales", _id: 0 } }
+      ]),
+      Product.aggregate([
+        { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryInfo" } },
+        { $unwind: "$categoryInfo" },
+        { $group: { _id: "$categoryInfo.name", productCount: { $sum: 1 } } },
+        { $sort: { productCount: -1 } },
+        { $project: { category: "$_id", count: "$productCount", _id: 0 } }
+      ])
+    ]);
+
+    sendSuccess(res, {
+      totalCategories: categoriesCount,
+      yearlyOrders,
+      yearlySales,
+      categoryProducts
+    });
+  } catch (error) {
+    sendError(res, 500, 'Failed to get dashboard data', error);
+  }
+};
+
 module.exports = {
   getTotalCategories,
   getYearlyOrders,
   getYearlySales,
-  getCategoryWiseProducts
+  getCategoryWiseProducts,
+  getDashboardData
 };
