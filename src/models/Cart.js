@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const CartSchema = new mongoose.Schema({
-  cartId: { type: String, default: 'global', index: true },
+  cartId: { type: String, default: 'global' },
   items: [{
     product: {
       type: mongoose.Schema.Types.ObjectId,

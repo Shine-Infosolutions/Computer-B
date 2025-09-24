@@ -45,30 +45,27 @@ exports.getAttributesByCategoryId = async (req, res) => {
 
     const templates = {
       "CPU": {
-        "socketType": "", "ChipsetSupport": "", "generation": "", "coreCount": "", "threadCount": "",
-        "baseClockSpeed": "", "maxBoostSpeed": "", "tdp": "", "integratedGraphics": "", "RamType": "",
-        "memorySpeed": "", "memoryChannels": "", "pcieVersion": "", "overclockingSupport": "",
-        "coolerIncluded": "", "releaseYear": ""
+        "Processor": "", "Cores": "", "Threads": "", "Base Clock Speed": "", "Boost Clock Speed": "",
+        "L3 Cache": "", "Socket": "", "Chipset": "", "TDP": "", "Integrated Graphics": "",
+        "PCIe Support": "", "Supported RAM Types": "", "Thermal Solution": ""
       },
       "Motherboard": {
-        "formFactor": "", "socketType": "", "ChipsetSupport": "", "chipset": "", "RamType": "",
-        "RamMemoryCapacity": "", "memorySlots": "", "RamSpeed": "", "pcieSlots": "", "m2Slots": "",
-        "sataPorts": "", "usbPorts": "", "networking": "", "pcieInterface": "", "audioChipset": "",
-        "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
+        "Chipset": "", "CPU Socket": "", "Memory Slots": "", "Maximum RAM": "", "Supported RAM Types": "",
+        "Expansion Slots": "", "Integrated Graphics": "", "Audio Codec": "", "LAN": "", "M.2 Slots": "",
+        "Form Factor": "", "Dimensions": "", "BIOS": "", "SATA Ports": "", "USB Ports": ""
       },
       "RAM": {
-        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "Voltage": "",
-        "formFactor": "", "eccSupport": "", "rgbLighting": "", "releaseYear": ""
+        "Capacity": "", "Supported RAM Types": "", "Speed": "", "CAS Latency": "", "Modules": "",
+        "Voltage": "", "ECC": "", "Rank": "", "Form Factor": "", "Interface": "", "Data Rate": ""
       },
       "Storage": {
         "Storagetype": "", "capacity": "", "interface": "", "formFactor": "", "readSpeed": "",
         "writeSpeed": "", "cache": "", "enduranceTbw": "", "mtbf": "", "releaseYear": ""
       },
       "GPU": {
-        "series": "", "gpuArchitecture": "", "memorySize": "", "memoryType": "", "memoryBusWidth": "",
-        "coreClockSpeed": "", "boostClockSpeed": "", "cudaShaderCores": "", "rayTracingSupport": "",
-        "dlssFsrSupport": "", "pcieInterface": "", "powerConsumption": "", "recommendedPsuWattage": "",
-        "powerConnectors": "", "coolingSolution": "", "outputPorts": "", "releaseYear": ""
+        "GPU Processor": "", "CUDA Cores": "", "Boost Clock": "", "Memory": "", "Memory Bus": "",
+        "Memory Bandwidth": "", "Stream Processors": "", "TDP": "", "Interface": "", "Dimensions": "",
+        "Power Connectors": "", "Cooling": "", "API Support": ""
       },
       "PSU": {
         "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
@@ -92,30 +89,27 @@ exports.getAttributeTemplates = async (req, res) => {
   try {
     const templates = {
       "CPU": {
-        "socketType": "", "ChipsetSupport": "", "generation": "", "coreCount": "", "threadCount": "",
-        "baseClockSpeed": "", "maxBoostSpeed": "", "tdp": "", "integratedGraphics": "", "RamType": "",
-        "memorySpeed": "", "memoryChannels": "", "pcieVersion": "", "overclockingSupport": "",
-        "coolerIncluded": "", "releaseYear": ""
+        "Processor": "", "Cores": "", "Threads": "", "Base Clock Speed": "", "Boost Clock Speed": "",
+        "L3 Cache": "", "Socket": "", "Chipset": "", "TDP": "", "Integrated Graphics": "",
+        "PCIe Support": "", "Supported RAM Types": "", "Thermal Solution": ""
       },
       "Motherboard": {
-        "formFactor": "", "socketType": "", "ChipsetSupport": "", "chipset": "", "RamType": "",
-        "RamMemoryCapacity": "", "memorySlots": "", "RamSpeed": "", "pcieSlots": "", "m2Slots": "",
-        "sataPorts": "", "usbPorts": "", "networking": "", "pcieInterface": "", "audioChipset": "",
-        "vrmPowerPhases": "", "releaseYear": "", "Storagetype": "", "wattage": ""
+        "Chipset": "", "CPU Socket": "", "Memory Slots": "", "Maximum RAM": "", "Supported RAM Types": "",
+        "Expansion Slots": "", "Integrated Graphics": "", "Audio Codec": "", "LAN": "", "M.2 Slots": "",
+        "Form Factor": "", "Dimensions": "", "BIOS": "", "SATA Ports": "", "USB Ports": ""
       },
       "RAM": {
-        "RamType": "", "RamMemoryCapacity": "", "RamSpeed": "", "casLatency": "", "Voltage": "",
-        "formFactor": "", "eccSupport": "", "rgbLighting": "", "releaseYear": ""
+        "Capacity": "", "Supported RAM Types": "", "Speed": "", "CAS Latency": "", "Modules": "",
+        "Voltage": "", "ECC": "", "Rank": "", "Form Factor": "", "Interface": "", "Data Rate": ""
       },
       "Storage": {
         "Storagetype": "", "capacity": "", "interface": "", "formFactor": "", "readSpeed": "",
         "writeSpeed": "", "cache": "", "enduranceTbw": "", "mtbf": "", "releaseYear": ""
       },
       "GPU": {
-        "series": "", "gpuArchitecture": "", "memorySize": "", "memoryType": "", "memoryBusWidth": "",
-        "coreClockSpeed": "", "boostClockSpeed": "", "cudaShaderCores": "", "rayTracingSupport": "",
-        "dlssFsrSupport": "", "pcieInterface": "", "powerConsumption": "", "recommendedPsuWattage": "",
-        "powerConnectors": "", "coolingSolution": "", "outputPorts": "", "releaseYear": ""
+        "GPU Processor": "", "CUDA Cores": "", "Boost Clock": "", "Memory": "", "Memory Bus": "",
+        "Memory Bandwidth": "", "Stream Processors": "", "TDP": "", "Interface": "", "Dimensions": "",
+        "Power Connectors": "", "Cooling": "", "API Support": ""
       },
       "PSU": {
         "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
