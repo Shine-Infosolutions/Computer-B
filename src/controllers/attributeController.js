@@ -73,6 +73,10 @@ exports.getAttributesByCategoryId = async (req, res) => {
       "PSU": {
         "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
         "connectorTypes": "", "protections": "", "releaseYear": ""
+      },
+      "Monitor": {
+        "screenSize": "", "resolution": "", "panelType": "", "refreshRate": "", "responseTime": "",
+        "brightness": "", "contrastRatio": "", "colorGamut": "", "adaptiveSync": "", "ports": "",
       }
     };
 
@@ -120,6 +124,10 @@ exports.getAttributeTemplates = async (req, res) => {
       "PSU": {
         "wattage": "", "formFactor": "", "efficiencyRating": "", "modular": "", "fanSize": "",
         "connectorTypes": "", "protections": "", "releaseYear": ""
+      },
+      "Monitor": {
+        "screenSize": "", "resolution": "", "panelType": "", "refreshRate": "", "responseTime": "",
+        "brightness": "", "contrastRatio": "", "colorGamut": "", "adaptiveSync": "", "ports": "",
       }
     };
     res.json(templates);
