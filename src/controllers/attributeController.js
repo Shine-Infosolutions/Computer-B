@@ -78,7 +78,7 @@ exports.getAttributesByCategoryId = async (req, res) => {
         "screenSize": "", "resolution": "", "panelType": "", "refreshRate": "", "responseTime": "",
         "brightness": "", "contrastRatio": "", "colorGamut": "", "adaptiveSync": "", "ports": "",
       },
-      "Speaker": {
+      "Speakers": {
   "type": "",
   "driverSize": "",
   "frequencyResponse": "",
@@ -93,7 +93,7 @@ exports.getAttributesByCategoryId = async (req, res) => {
   "waterResistance": "",
   "weight": "",
   "releaseYear": ""
-},"Camera": {
+},"Cameras": {
   "type": "",
   "sensorType": "",
   "megapixels": "",
