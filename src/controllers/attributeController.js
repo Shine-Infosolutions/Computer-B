@@ -78,38 +78,7 @@ exports.getAttributesByCategoryId = async (req, res) => {
         "screenSize": "", "resolution": "", "panelType": "", "refreshRate": "", "responseTime": "",
         "brightness": "", "contrastRatio": "", "colorGamut": "", "adaptiveSync": "", "ports": "",
       },
-      "Speakers": {
-  "type": "",
-  "driverSize": "",
-  "frequencyResponse": "",
-  "impedance": "",
-  "sensitivity": "",
-  "powerOutput": "",
-  "channelConfig": "",
-  "connectivity": "",
-  "batteryLife": "",
-  "controls": "",
-  "voiceAssistant": "",
-  "waterResistance": "",
-  "weight": "",
-  "releaseYear": ""
-},"Cameras": {
-  "type": "",
-  "sensorType": "",
-  "megapixels": "",
-  "lensMount": "",
-  "apertureRange": "",
-  "isoRange": "",
-  "shutterSpeedRange": "",
-  "videoResolution": "",
-  "imageStabilization": "",
-  "screenType": "",
-  "connectivity": "",
-  "batteryLife": "",
-  "storageType": "",
-  "weight": "",
-  "releaseYear": ""
-},
+     
     };
 
     const categoryAttributes = templates[category.name];
