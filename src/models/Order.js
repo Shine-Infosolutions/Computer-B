@@ -6,7 +6,7 @@ const OrderSchema = new mongoose.Schema({
   customerName: { type: String, required: true, trim: true, index: true },
   customerEmail: { type: String, trim: true, lowercase: true },
   customerPhone: { type: String, trim: true },
-  address: { type: String, required: true, trim: true },
+  address: { type: String, trim: true },
   type: {
     type: String,
     enum: ["Order", "Quotation"],
