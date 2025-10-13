@@ -16,6 +16,7 @@ app.use(cors({
   origin: [
     "https://computer-drab.vercel.app",
     "http://localhost:5173",
+    "http://localhost:3000",
     "https://computer-b.vercel.app",
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -36,7 +37,8 @@ const routes = [
   ['/api/quotations', require('./src/routes/quotationRoutes')],
   ['/api/attributes', require('./src/routes/attributeRoutes')],
   ['/api/scraper', require('./src/routes/productScraperRoutes')],
-  ['/api/cart', require('./src/routes/cartRoutes')]
+  ['/api/cart', require('./src/routes/cartRoutes')],
+  ['/api/bulk-import', require('./src/routes/bulkImportRoutes')]
 ];
 
 routes.forEach(([path, router]) => app.use(path, router));
