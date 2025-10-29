@@ -151,27 +151,58 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
+    console.log('🔍 GET PRODUCT BY ID - Requested ID:', req.params.id);
+    
     if (!isValidObjectId(req.params.id)) {
+      console.log('❌ Invalid ObjectId format:', req.params.id);
       return sendError(res, 400, 'Invalid product ID');
     }
+    
+    // Log all available product IDs for debugging
+    const allProducts = await Product.find({}, '_id name').lean();
+    console.log('📋 All available products:');
+    allProducts.forEach(p => console.log(`  - ID: ${p._id}, Name: ${p.name}`));
     
     const product = await Product.findById(req.params.id)
       .populate('category', 'name')
       .lean();
       
-    if (!product) return sendError(res, 404, 'Product not found');
+    if (!product) {
+      console.log('❌ Product not found with ID:', req.params.id);
+      return sendError(res, 404, 'Product not found');
+    }
     
+    console.log('✅ Product found:', product.name);
     sendSuccess(res, product);
   } catch (error) {
+    console.log('💥 Error in getProductById:', error.message);
     sendError(res, 500, 'Failed to fetch product', error);
   }
 };
 
 exports.updateProduct = async (req, res) => {
   try {
+    console.log('🔄 UPDATE PRODUCT - Requested ID:', req.params.id);
+    console.log('📝 Update data:', JSON.stringify(req.body, null, 2));
+    
     if (!isValidObjectId(req.params.id)) {
+      console.log('❌ Invalid ObjectId format:', req.params.id);
       return sendError(res, 400, 'Invalid product ID');
     }
+
+    // Log all available product IDs for debugging
+    const allProducts = await Product.find({}, '_id name').lean();
+    console.log('📋 All available products:');
+    allProducts.forEach(p => console.log(`  - ID: ${p._id}, Name: ${p.name}`));
+    
+    // Check if product exists before update
+    const existingProduct = await Product.findById(req.params.id).lean();
+    if (!existingProduct) {
+      console.log('❌ Product not found for update with ID:', req.params.id);
+      return sendError(res, 404, 'Product not found');
+    }
+    
+    console.log('✅ Product found for update:', existingProduct.name);
 
     const { attributes, ...rest } = req.body;
     const updateData = {
@@ -185,10 +216,15 @@ exports.updateProduct = async (req, res) => {
       { new: true, runValidators: true }
     ).populate('category', 'name').lean();
 
-    if (!product) return sendError(res, 404, 'Product not found');
+    if (!product) {
+      console.log('❌ Product update failed - not found after update');
+      return sendError(res, 404, 'Product not found');
+    }
 
+    console.log('✅ Product updated successfully:', product.name);
     sendSuccess(res, product, 'Product updated successfully');
   } catch (error) {
+    console.log('💥 Error in updateProduct:', error.message);
     sendError(res, 500, 'Failed to update product', error);
   }
 };
