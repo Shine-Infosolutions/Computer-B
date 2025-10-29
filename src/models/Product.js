@@ -8,6 +8,11 @@ const ProductSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  subCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SubCategory",
+    index: true
+  },
   brand: { type: String, trim: true, index: true },
   modelNumber: { type: String, trim: true },
   quantity: { type: Number, default: 0, min: 0 },
