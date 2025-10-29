@@ -30,6 +30,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // API Routes
 const routes = [
   ['/api/categories', require('./src/routes/categoryRoutes')],
+  ['/api/subcategories', require('./src/routes/subCategoryRoutes')],
   ['/api/products', require('./src/routes/productRoutes')],
   ['/api/orders', require('./src/routes/orderRoutes')],
   ['/api/dashboard', require('./src/routes/dashboardRoutes')],
