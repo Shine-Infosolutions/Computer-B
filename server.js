@@ -14,7 +14,7 @@ const app = express();
 // Security middleware
 app.use(cors({
   origin: [
-    "https://computer-drab.vercel.app",
+    "https://mittal-computers.vercel.app",
     "http://localhost:5173",
     "http://localhost:3000",
     "https://computer-b.vercel.app",
