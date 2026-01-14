@@ -39,7 +39,8 @@ const routes = [
   ['/api/attributes', require('./src/routes/attributeRoutes')],
   ['/api/scraper', require('./src/routes/productScraperRoutes')],
   ['/api/cart', require('./src/routes/cartRoutes')],
-  ['/api/bulk-import', require('./src/routes/bulkImportRoutes')]
+  ['/api/bulk-import', require('./src/routes/bulkImportRoutes')],
+  ['/api/compatibility', require('./src/routes/compatibilityRoutes')]
 ];
 
 routes.forEach(([path, router]) => app.use(path, router));

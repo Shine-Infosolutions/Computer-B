@@ -5,6 +5,7 @@ const productController = require("../controllers/productController");
 // Static routes first
 router.post("/create", productController.createProduct);
 router.post("/scrape", productController.scrapeProductData);
+router.post("/check-compatibility", productController.checkCompatibility);
 router.get("/search", productController.searchProducts);
 router.get("/all", productController.getAllProducts);
 router.get("/export/csv", productController.exportProductsCSV);
