@@ -28,7 +28,11 @@ const ProductSchema = new mongoose.Schema({
   attributes: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
-  }
+  },
+  compatibleWith: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Product" 
+  }]
 }, {
   timestamps: true
 });

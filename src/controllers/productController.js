@@ -136,6 +136,7 @@ exports.getAllProducts = async (req, res) => {
     const [products, total] = await Promise.all([
       Product.find()
         .populate('category', 'name')
+        .populate('compatibleWith', 'name')
         .skip(skip)
         .limit(Number(limit))
         .lean(),
@@ -165,6 +166,7 @@ exports.getProductById = async (req, res) => {
     
     const product = await Product.findById(req.params.id)
       .populate('category', 'name')
+      .populate('compatibleWith', 'name brand modelNumber')
       .lean();
       
     if (!product) {
@@ -177,6 +179,35 @@ exports.getProductById = async (req, res) => {
   } catch (error) {
     console.log('💥 Error in getProductById:', error.message);
     sendError(res, 500, 'Failed to fetch product', error);
+  }
+};
+
+exports.checkCompatibility = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    
+    if (!productIds || productIds.length < 2) {
+      return sendError(res, 400, 'At least 2 products required');
+    }
+
+    const products = await Product.find({ _id: { $in: productIds } })
+      .populate('compatibleWith', '_id');
+    
+    const compatibility = {};
+    
+    products.forEach(product => {
+      const compatibleIds = product.compatibleWith?.map(p => p._id.toString()) || [];
+      compatibility[product._id] = productIds
+        .filter(id => id !== product._id.toString())
+        .map(id => ({
+          productId: id,
+          isCompatible: compatibleIds.includes(id)
+        }));
+    });
+
+    sendSuccess(res, compatibility);
+  } catch (error) {
+    sendError(res, 500, 'Failed to check compatibility', error);
   }
 };
 
